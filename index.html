@@ -40,8 +40,8 @@ window.SITE_EDIT = {
   bannerImagePosition:"center 20%",
 
   /* BANNER SHAPE — edit these text values from Developer Settings */
-  bannerImageHeight:"70%",
-  bannerBorderRadius:"0 0 50% 50% / 0 0 18% 18%",
+  bannerImageHeight:"45%",
+  bannerBorderRadius:"5% 5% 50% 50% / 5% 5% 18% 18%",
   bannerClipPath:"",
   bannerShine:"on",
 
@@ -2971,6 +2971,27 @@ button,a{touch-action:manipulation}
 .hero{background:var(--background,#fff);}
 @media(max-width:650px){.hero-banner{height:70%;}}
 </style>
+<style id="banner-logo-auto-adjustment">
+/* ONLY requested banner/logo adjustment: content follows banner height automatically. */
+.hero-content{
+  top:calc(var(--banner-image-height,70%) - clamp(59px,9.5vw,74px)) !important;
+  bottom:auto !important;
+  left:20px;
+  right:20px;
+  transform:none !important;
+}
+.hero-banner{
+  height:var(--banner-image-height,70%) !important;
+  top:0 !important;
+  bottom:auto !important;
+}
+@media(max-width:760px){
+  .hero-content{top:calc(var(--banner-image-height,70%) - 59px) !important;bottom:auto !important;}
+}
+@media(max-width:430px){
+  .hero-content{top:calc(var(--banner-image-height,70%) - 59px) !important;bottom:auto !important;}
+}
+</style>
 
 <style id="premium-offer-slide">
 /* PREMIUM OFFER SLIDE — only the requested offer area */
@@ -3140,6 +3161,30 @@ button,a{touch-action:manipulation}
   .rating-reviews{font-size:11px !important;}
 }
 </style>
+<style id="final-responsive-banner-flow">
+/* FINAL BANNER-ONLY FLOW FIX: JS calculates the exact hero height from the
+   selected banner height and content. No other sections are restyled. */
+.hero{
+  overflow:visible !important;
+  height:auto !important;
+  min-height:0 !important;
+}
+.hero-banner{
+  width:100% !important;
+  object-fit:cover !important;
+}
+.hero-content{
+  left:clamp(10px,4vw,24px) !important;
+  right:clamp(10px,4vw,24px) !important;
+  transform:none !important;
+}
+.logo-ring{
+  flex:0 0 auto !important;
+}
+@media(max-width:430px){
+  .hero-content{left:10px !important;right:10px !important;}
+}
+</style>
 
 </head>
 
@@ -3279,7 +3324,7 @@ button,a{touch-action:manipulation}
             <path d="M16.5 13.5l1 1 2-2"/>
           </svg>
         </div>
-        <h3 class="service-title">Generate Bill</h3>
+        <h3 class="service-title">Digital Bill</h3>
         <button class="service-bill-btn" type="button" onclick="openCleanBill()">Generate Bill</button>
       </article>
 
@@ -4310,6 +4355,71 @@ button,a{touch-action:manipulation}
     const hero=document.querySelector(".hero");
     if(hero){
       hero.classList.toggle("banner-shine-off",String(E.bannerShine||"on").toLowerCase()==="off");
+    }
+
+    /* Responsive banner/logo flow: the banner height controls the whole
+       hero height, so logo + text + rating + every section below it move
+       together automatically on every screen size. */
+    function syncBannerLayout(){
+      const h=document.querySelector(".hero");
+      const bc=document.querySelector(".hero-content");
+      const b=document.querySelector(".hero-banner");
+      const lr=document.querySelector(".logo-ring");
+      if(!h||!bc||!b||!lr) return;
+
+      const vw=window.innerWidth||document.documentElement.clientWidth||400;
+      let baseHero;
+      if(vw<=380) baseHero=400;
+      else if(vw<=600) baseHero=Math.max(390,Math.min(520,vw*1.05));
+      else if(vw<=760) baseHero=460;
+      else baseHero=Math.min(560,vw*0.62);
+      if(vw>760) baseHero=Math.max(475,baseHero);
+
+      const raw=String(E.bannerImageHeight||"70%").trim();
+      let bannerPx;
+      if(/%$/.test(raw)){
+        bannerPx=baseHero*(parseFloat(raw)/100);
+      }else if(/px$/.test(raw)){
+        bannerPx=parseFloat(raw);
+      }else if(/^\d+(?:\.\d+)?$/.test(raw)){
+        bannerPx=parseFloat(raw);
+      }else{
+        const probe=document.createElement("div");
+        probe.style.cssText="position:absolute;visibility:hidden;height:"+raw+";width:0";
+        document.body.appendChild(probe);
+        bannerPx=probe.getBoundingClientRect().height||baseHero*.7;
+        probe.remove();
+      }
+      bannerPx=Math.max(80,Math.min(baseHero*1.35,bannerPx));
+
+      const logoSize=Math.round(lr.getBoundingClientRect().width||((vw<=430)?118:148));
+      const contentTop=Math.max(12,bannerPx-(logoSize/2));
+      const bottomGap=Math.max(18,Math.min(34,vw*.05));
+
+      b.style.setProperty("height",bannerPx+"px","important");
+      b.style.setProperty("top","0px","important");
+      b.style.setProperty("bottom","auto","important");
+      bc.style.setProperty("top",contentTop+"px","important");
+      bc.style.setProperty("bottom","auto","important");
+
+      /* Wait one frame so wrapped text has its final height, then size the
+         hero to exactly contain the logo, header text and rating. */
+      requestAnimationFrame(()=>{
+        const contentBottom=bc.getBoundingClientRect().height+contentTop;
+        const heroHeight=Math.max(baseHero*.45,contentBottom+bottomGap);
+        h.style.setProperty("height",Math.ceil(heroHeight)+"px","important");
+      });
+    }
+    syncBannerLayout();
+    window.__syncBannerLayout=syncBannerLayout;
+    if(!window.__bannerLayoutResizeBound){
+      window.__bannerLayoutResizeBound=true;
+      window.addEventListener("resize",()=>{
+        clearTimeout(window.__bannerLayoutResizeTimer);
+        window.__bannerLayoutResizeTimer=setTimeout(()=>window.__syncBannerLayout&&window.__syncBannerLayout(),80);
+      },{passive:true});
+      window.addEventListener("orientationchange",()=>setTimeout(()=>window.__syncBannerLayout&&window.__syncBannerLayout(),120),{passive:true});
+      if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>window.__syncBannerLayout&&window.__syncBannerLayout());
     }
 
     /* Offer slide — responsive and fully developer-editable */
