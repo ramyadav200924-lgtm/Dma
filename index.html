@@ -264,6 +264,12 @@ window.CARD = {
   greetingTitle: "Welcome",
   greetingText: "Welcome to our digital business card. We are happy to serve you.",
   greetingLogoLink: "https://placehold.co/350x350/png?text=LOGO",
+  greetingEnabled: "on",
+  greetingFont: "Arial, Helvetica, sans-serif",
+  greetingSize: "16px",
+  greetingWeight: "700",
+  greetingColor: "#4a2b23",
+  greetingSpacing: "0px",
 
   /* ============================================================
      THEME — EDIT COLORS / TEXT STYLE FROM HERE
@@ -341,6 +347,14 @@ window.applyDevSettings = function(d){
   set(C,"name",d.shopName);
   set(C,"logoLink",d.logoLink);
   set(C,"greetingLogoLink",d.logoLink);
+  set(C,"greetingTitle",d.greetingTitle);
+  set(C,"greetingText",d.greetingText);
+  set(C,"greetingEnabled",d.greetingEnabled);
+  set(C,"greetingFont",d.greetingFont);
+  set(C,"greetingSize",d.greetingSize);
+  set(C,"greetingWeight",d.greetingWeight);
+  set(C,"greetingColor",d.greetingColor);
+  set(C,"greetingSpacing",d.greetingSpacing);
   set(C,"bannerLink",d.bannerLink);
 
   if(has(d.phoneNumber)){
@@ -3930,6 +3944,20 @@ button,a{touch-action:manipulation}
   text("greetingName",c.name);
   text("greetingText",c.greetingText);
 
+  /* Greeting popup — editable from Developer Settings */
+  const greetingModal=document.getElementById("greetingModal");
+  const greetingMessage=document.getElementById("greetingText");
+  if(greetingModal){
+    greetingModal.classList.toggle("open",String(c.greetingEnabled||"on").toLowerCase()!=="off");
+  }
+  if(greetingMessage){
+    if(c.greetingFont) greetingMessage.style.fontFamily=c.greetingFont;
+    if(c.greetingSize) greetingMessage.style.fontSize=c.greetingSize;
+    if(c.greetingWeight) greetingMessage.style.fontWeight=c.greetingWeight;
+    if(c.greetingColor) greetingMessage.style.color=c.greetingColor;
+    if(c.greetingSpacing) greetingMessage.style.letterSpacing=c.greetingSpacing;
+  }
+
   /* ==========================================================
      SHARE
      ========================================================== */
@@ -6377,6 +6405,22 @@ module.exports = QRCode;
       </details>
 
       <details class="dev-section">
+        <summary>Greeting Message Popup</summary>
+        <div class="dev-fields">
+          <div class="dev-field"><label>Greeting Popup</label><select id="dev_greetingEnabled"><option value="on">On</option><option value="off">Off</option></select></div>
+          <div class="dev-field"><label>Greeting Title</label><input id="dev_greetingTitle" placeholder="Welcome"></div>
+          <div class="dev-field"><label>Greeting Message Text</label><textarea id="dev_greetingText" placeholder="Welcome to our digital business card. We are happy to serve you."></textarea></div>
+          <div class="dev-field"><label>Font Style</label><input id="dev_greetingFont" placeholder="Arial, Helvetica, sans-serif"></div>
+          <div class="gift-dev-minmax">
+            <input id="dev_greetingSize" placeholder="Text Size e.g. 16px">
+            <input id="dev_greetingWeight" placeholder="Weight e.g. 700">
+            <input id="dev_greetingSpacing" placeholder="Spacing e.g. 0px">
+          </div>
+          <div class="dev-field"><label>Text Color</label><input id="dev_greetingColor" placeholder="#4a2b23"></div>
+        </div>
+      </details>
+
+      <details class="dev-section">
         <summary>Offer Slide</summary>
         <div class="dev-fields">
           <div class="dev-field"><label>Offer Text</label><input id="dev_offerText" placeholder="Offers 30% OFF"></div>
@@ -6655,6 +6699,15 @@ module.exports = QRCode;
     fillTypography("ratingStars","ratingStars");
     fillTypography("ratingReviews","ratingReviews");
 
+    $("dev_greetingEnabled").value=c.greetingEnabled||"on";
+    $("dev_greetingTitle").value=c.greetingTitle||"";
+    $("dev_greetingText").value=c.greetingText||"";
+    $("dev_greetingFont").value=c.greetingFont||"";
+    $("dev_greetingSize").value=c.greetingSize||"";
+    $("dev_greetingWeight").value=c.greetingWeight||"";
+    $("dev_greetingColor").value=c.greetingColor||"";
+    $("dev_greetingSpacing").value=c.greetingSpacing||"";
+
     $("dev_offerText").value=s.offerText||"";
     $("dev_offerBackground").value=s.offerBackground||"";
     $("dev_offerTextColor").value=s.offerTextColor||"";
@@ -6749,6 +6802,8 @@ module.exports = QRCode;
       shopTagline:v("dev_shopTagline"), shopSubline:v("dev_shopSubline"), rating:v("dev_rating"), reviewCountText:v("dev_reviewCountText"),
       bannerImagePosition:v("dev_bannerImagePosition"), bannerImageHeight:v("dev_bannerImageHeight"),
       bannerBorderRadius:v("dev_bannerBorderRadius"), bannerClipPath:v("dev_bannerClipPath"), bannerShine:v("dev_bannerShine"),
+      greetingEnabled:v("dev_greetingEnabled"), greetingTitle:v("dev_greetingTitle"), greetingText:v("dev_greetingText"),
+      greetingFont:v("dev_greetingFont"), greetingSize:v("dev_greetingSize"), greetingWeight:v("dev_greetingWeight"), greetingColor:v("dev_greetingColor"), greetingSpacing:v("dev_greetingSpacing"),
       offerText:v("dev_offerText"), offerBackground:v("dev_offerBackground"), offerTextColor:v("dev_offerTextColor"),
       offerFont:v("dev_offerFont"), offerSize:v("dev_offerSize"), offerWeight:v("dev_offerWeight"),
       offerSpacing:v("dev_offerSpacing"), offerRadius:v("dev_offerRadius"), offerAnimation:v("dev_offerAnimation"),
