@@ -202,11 +202,11 @@ window.CARD = {
 
   /* ---------- POPULAR PRODUCTS ---------- */
   productLinks: {
-    smartphone: "s.jpeg",
-    earphone: "e.jpeg",
-    charger: "ch.jpeg",
-    powerBank: "p.jpeg",
-    mobileCover: "c.jpeg"
+    smartphone: "https://raw.githubusercontent.com/ramyadav200924-lgtm/Dma/main/s.jpeg",
+    earphone: "https://raw.githubusercontent.com/ramyadav200924-lgtm/Dma/main/e.jpeg",
+    charger: "https://raw.githubusercontent.com/ramyadav200924-lgtm/Dma/main/ch.jpeg",
+    powerBank: "https://raw.githubusercontent.com/ramyadav200924-lgtm/Dma/main/p.jpeg",
+    mobileCover: "https://raw.githubusercontent.com/ramyadav200924-lgtm/Dma/main/c.jpeg"
   },
 
   /* ---------- GIFT ---------- */
@@ -6828,22 +6828,25 @@ module.exports = QRCode;
     return text.slice(0,cutStart)+text.slice(cutEnd);
   }
   function downloadAppliedHtml(){
-    const tpl=$("__pageSourceB64__");
-    if(!tpl){ console.warn("source template missing"); return; }
-    let src;
-    try{ src=b64ToUtf8(tpl.textContent.trim()); }catch(e){ console.warn(e); return; }
+    /* Build from the LIVE page, not the old embedded template.
+       This preserves every Developer Settings change currently applied,
+       including banner/logo settings and all newer animations/features. */
+    let src="<!DOCTYPE html>\n"+document.documentElement.outerHTML;
 
-    /* bake the final, already-applied values as the new literal defaults */
+    /* Bake the live values into the downloaded file as literal defaults. */
     src=replaceConfigBlock(src,"window.SITE_EDIT = {",window.SITE_EDIT);
     src=replaceConfigBlock(src,"window.BILL_EDIT = {",window.BILL_EDIT);
     src=replaceConfigBlock(src,"window.CARD = {",window.CARD);
 
-    /* strip out the Developer Settings engine + panel entirely */
+    /* Remove developer-only machinery from the customer/downloaded file. */
     src=removeSection(src,"DEVELOPER SETTINGS ENGINE","<\/script>");
     src=removeSection(src,"DEVELOPER SETTINGS PANEL","<\/script>");
 
+    /* Remove the embedded source template; the downloaded file already is the live page. */
+    src=src.replace(/\s*<script[^>]*id=["']__pageSourceB64__["'][^>]*>[\s\S]*?<\/script>\s*/i,"\n");
+
     /* The downloaded customer file must not contain the developer-only download control. */
-    src=src.replace(/\s*<button[^>]*id=["']applyDownloadBtn["'][\s\S]*?<\/button>\s*/i, "\n");
+    src=src.replace(/\s*<button[^>]*id=["']applyDownloadBtn["'][\s\S]*?<\/button>\s*/i,"\n");
 
     const blob=new Blob([src],{type:"text/html"});
     const url=URL.createObjectURL(blob);
